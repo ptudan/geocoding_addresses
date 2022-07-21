@@ -43,7 +43,12 @@ def add_locations_to_csv(filename: str):
         writer = csv.DictWriter(tempfile, fieldnames=fields)
         for row in reader:
             count += 1
-            if row["lat"] is None or row["lat"] == "":
+            if (
+                row["lat"] is None
+                or row["lat"] == ""
+                or row["PostalCode"] is None
+                or row["PostalCode"] == ""
+            ):
                 print("adding lat/lon for address: ", row)
                 addr = [
                     row["AddressLine1"],
