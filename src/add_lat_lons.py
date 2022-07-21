@@ -22,6 +22,14 @@ fields = [
 ]
 
 
+def get_postal_code_from_resp(resp):
+    acs = resp["address_components"]
+    for ac in acs:
+        for t in ac["types"]:
+            if t == "postal_code":
+                return ac["long_name"]
+
+
 @cliapp.command()
 def add_locations_to_csv(filename: str):
     apikey_file = open(".gmaps_apikey", "r")
@@ -62,6 +70,11 @@ def add_locations_to_csv(filename: str):
                     continue
                 geocode_result = geocode_result[0]
                 print(geocode_result)
+                pc = (
+                    row["PostalCode"]
+                    if row["PostalCode"] is not None and row["PostalCode"] != ""
+                    else get_postal_code_from_resp(geocode_result)
+                )
                 row = {
                     "WorkplaceName": row["WorkplaceName"],
                     "AddressLine1": row["AddressLine1"],
@@ -69,7 +82,7 @@ def add_locations_to_csv(filename: str):
                     "AddressLine3": row["AddressLine3"],
                     "City": row["City"],
                     "Region": row["Region"],
-                    "PostalCode": row["PostalCode"],
+                    "PostalCode": pc,
                     "Country": row["Country"],
                     "lat": geocode_result["geometry"]["location"]["lat"],
                     "lon": geocode_result["geometry"]["location"]["lng"],
