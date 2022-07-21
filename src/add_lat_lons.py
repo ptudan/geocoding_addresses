@@ -2,6 +2,7 @@ import shutil
 import typer
 import googlemaps
 import csv
+import time
 from tempfile import NamedTemporaryFile
 
 cliapp = typer.Typer()
@@ -27,10 +28,12 @@ def add_locations_to_csv(filename: str):
     apikey_file.close()
     gmaps = googlemaps.Client(key=gmaps_key)
     tempfile = NamedTemporaryFile(mode="w", delete=False)
+    count = 0
     with open(filename, "r") as rf, tempfile:
         reader = csv.DictReader(rf, fieldnames=fields)
         writer = csv.DictWriter(tempfile, fieldnames=fields)
         for row in reader:
+            count += 1
             if row["lat"] is None or row["lat"] == "":
                 print("adding lat/lon for address: ", row)
                 addr = (
@@ -44,9 +47,15 @@ def add_locations_to_csv(filename: str):
                 )
                 geocode_result = gmaps.geocode(",".join(addr))
                 if len(geocode_result) == 0:
-                    raise Exception("No geocode result found for ", row)
+                    print("*******")
+                    print("No geocode result found for ", row)
+                    print("*******")
+                    continue
                 elif len(geocode_result) > 1:
-                    raise Exception("Multiple geocode results found for ", row)
+                    print("*******")
+                    print("Multiple geocode results found for ", row)
+                    print("*******")
+                    continue
                 geocode_result = geocode_result[0]
                 print(geocode_result)
                 row = {
@@ -76,6 +85,8 @@ def add_locations_to_csv(filename: str):
                 }
             print(row)
             writer.writerow(row)
+            if count % 100 == 0:
+                time.sleep(5)
     shutil.move(tempfile.name, filename)
 
 
