@@ -18,6 +18,7 @@ fields = [
     "PostalCode",
     "lat",
     "lon",
+    "DateOpened",
 ]
 
 
@@ -36,15 +37,18 @@ def add_locations_to_csv(filename: str):
             count += 1
             if row["lat"] is None or row["lat"] == "":
                 print("adding lat/lon for address: ", row)
-                addr = (
+                addr = [
                     row["AddressLine1"],
                     row["AddressLine2"],
                     row["AddressLine3"],
                     row["City"],
-                    row["Region"],
-                    row["PostalCode"],
-                    row["Country"],
-                )
+                ]
+                if row["Region"] is not None:
+                    addr.append(row["Region"])
+                if row["PostalCode"] is not None:
+                    addr.append(row["PostalCode"])
+                if row["Country"] is not None:
+                    addr.append(row["Country"])
                 geocode_result = gmaps.geocode(",".join(addr))
                 if len(geocode_result) == 0:
                     print("*******")
@@ -69,6 +73,7 @@ def add_locations_to_csv(filename: str):
                     "Country": row["Country"],
                     "lat": geocode_result["geometry"]["location"]["lat"],
                     "lon": geocode_result["geometry"]["location"]["lng"],
+                    "DateOpened": row["DateOpened"],
                 }
             else:
                 row = {
@@ -82,6 +87,7 @@ def add_locations_to_csv(filename: str):
                     "Country": row["Country"],
                     "lat": row["lat"],
                     "lon": row["lon"],
+                    "DateOpened": row["DateOpened"],
                 }
             print(row)
             writer.writerow(row)
